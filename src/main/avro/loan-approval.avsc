@@ -1,0 +1,59 @@
+{
+  "type": "record",
+  "name": "LoanApproval",
+  "namespace": "com.acmeinc",
+  "doc": "Loan Approval",
+  "fields": [
+    {
+      "name": "id",
+      "doc": "Loan application ID",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    },
+    {
+      "name": "published_by",
+      "doc": "The application that produced a record",
+      "type": "string"
+    },
+    {
+      "name": "published_at",
+      "doc": "Timestamp in milliseconds when a record was produced",
+      "type": "long"
+    },
+    {
+      "name": "income",
+      "doc": "Applicant's income",
+      "type": "long"
+    },
+    {
+      "name": "submitted_at",
+      "doc": "Timestamp in milliseconds when a record should take effect",
+      "type": "long"
+    },
+    {
+      "name": "first_name",
+      "doc": "Applicant's first name",
+      "type": "string"
+    },
+    {
+      "name": "last_name",
+      "doc": "Applicant's last name",
+      "type": "string"
+    },
+    {
+      "name": "approval_status",
+      "doc": "Approval status",
+      "type": "string"
+    },
+    {
+      "name": "tracking_id",
+      "doc": "Used to trace related messages through the system",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    }
+  ]
+}
