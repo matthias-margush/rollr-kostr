@@ -27,7 +27,7 @@ private fun props(props: Map<String, Any>): Properties {
     return properties
 }
 
-fun testTopology(topology: (StreamsBuilder) -> Unit): TopologyTestDriver {
+fun mocktop(topology: (StreamsBuilder) -> Unit): TopologyTestDriver {
     Topic.useMocking = true
     val builder = StreamsBuilder()
     topology(builder)
