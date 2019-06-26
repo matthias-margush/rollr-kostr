@@ -46,7 +46,7 @@ data class LoanApplication(override val map: Map<String, Any?>) {
 Topics & serdes go together conceptually, but the Java kafka APIs don't bundle topics & serdes in a data structure. Tracking those all separately can be a bit typo-prone if there are more than a few topics. The project simplifies this by defining a `Topic` type that packages up [topics](src/main/kotlin/kostr/Topic.kt) and [serdes](src/main/kotlin/kostr/serde/Serde.kt) together. Define a topic like this:
 
 ```kotlin
-val LoanApprovalTopic = Topic<String, LoanApproval>( "loan-approval", StringSerde{}, AvroSerde{})
+val LoanApprovalTopic = Topic<String, LoanApproval>("loan-approval", StringSerde{}, AvroSerde{})
 ```
 This defines a topic named "loan-approval" whose key will be serialized using the string serde, and whose value will be serialized from avro into the `LoanApproval` data object (which was generated with the avro plugin).
 
@@ -56,7 +56,7 @@ Kotlin [extension functions](https://kotlinlang.org/docs/reference/extensions.ht
 ```kotlin
 fun loanApprovalTopology(builder: StreamsBuilder) =
     builder.stream(Topics.LoanApplication)
-        .mapValues(::approveLoan) to Topics.LoanApproval
+        .mapValues(::rubberStamp) to Topics.LoanApproval
 ```
 
 ### 🎢 Tests

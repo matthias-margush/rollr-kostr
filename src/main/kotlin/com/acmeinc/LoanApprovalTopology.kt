@@ -5,10 +5,10 @@ import org.apache.kafka.streams.StreamsBuilder
 
 fun loanApprovalTopology(builder: StreamsBuilder) =
     builder.stream(Topics.LoanApplication)
-        .mapValues(::approveLoan) to Topics.LoanApproval
+        .mapValues(::rubberStamp) to Topics.LoanApproval
 
 // All applications are approved automatically!
-fun approveLoan(app: LoanApplication): LoanApproval =
+fun rubberStamp(app: LoanApplication): LoanApproval =
     LoanApproval(
         app.id.toString(),
         app.publishedBy,
