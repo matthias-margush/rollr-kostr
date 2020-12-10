@@ -3,7 +3,7 @@ package com.acmeinc
 import kostr.test.consume
 import kostr.test.produce
 import kostr.test.mocktop
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 
 class LoanApprovalTest {
     @Test

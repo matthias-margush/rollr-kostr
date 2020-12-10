@@ -1,8 +1,8 @@
 package kostr.serde
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import org.junit.jupiter.api.Test
 
 class EdnTest {
     @Test
