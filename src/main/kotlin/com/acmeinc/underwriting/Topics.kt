@@ -1,20 +1,20 @@
 package com.acmeinc.underwriting
 
-import kostr.serde.EDNSerde
 import kostr.Topic
-import kostr.serde.AvroSerde
-import kostr.serde.StringSerde
+import kostr.serde.EDNSerde
+import kostr.serde.avroSerde
+import kostr.serde.stringSerde
 
 object Topics {
     val LoanApplication = Topic<String, LoanApplication>(
         "loan-application",
-        StringSerde{},
+        stringSerde{},
         EDNSerde { LoanApplication(it) }
     )
 
     val LoanApproval = Topic<String, LoanApproval>(
         "loan-approval",
-        StringSerde{},
-        AvroSerde{}
+        stringSerde{},
+        avroSerde{}
     )
 }

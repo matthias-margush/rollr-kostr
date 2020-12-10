@@ -6,7 +6,7 @@ import org.apache.kafka.streams.StreamsConfig.*
 import java.lang.System.getenv
 import java.util.*
 
-object configs {
+object Configs {
     fun kafka(applicationId: String): Properties {
         val props = Properties()
         props[APPLICATION_ID_CONFIG] = getenv("APPLICATION_ID") ?: applicationId

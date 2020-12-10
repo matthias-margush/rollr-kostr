@@ -1,24 +1,32 @@
 package kostr.test
 
 import kostr.Topic
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.TopologyTestDriver
-import org.apache.kafka.streams.test.ConsumerRecordFactory
+import org.apache.kafka.streams.*
 import java.util.*
 
-private val topicGenerators: MutableMap<Topic<*, *>, ConsumerRecordFactory<*, *>> = mutableMapOf()
+private val inputTopicGenerators: MutableMap<Topic<*, *>, TestInputTopic<*, *>> = mutableMapOf()
+private val outputTopicGenerators: MutableMap<Topic<*, *>, TestOutputTopic<*, *>> = mutableMapOf()
 
 @Suppress("UNCHECKED_CAST")
-private fun <K, V> topicGenerator(topic: Topic<K, V>): ConsumerRecordFactory<K, V> {
-    return topicGenerators.getOrPut(topic) {
-        ConsumerRecordFactory(
+private fun <K, V> TopologyTestDriver.toTopic(topic: Topic<K, V>): TestInputTopic<K, V> {
+    return inputTopicGenerators.getOrPut(topic) {
+        this.createInputTopic(
             topic.name,
-            topic.keySerde.serializer(),
-            topic.valueSerde.serializer(),
-            0,
-            1)
-    } as ConsumerRecordFactory<K, V>
+            Topic.mockedSerde(topic.keySerde, true).serializer(),
+            Topic.mockedSerde(topic.valueSerde, false).serializer()
+        )
+    } as TestInputTopic<K, V>
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <K, V> TopologyTestDriver.fromTopic(topic: Topic<K, V>): TestOutputTopic<K, V> {
+    return outputTopicGenerators.getOrPut(topic) {
+        this.createOutputTopic(
+            topic.name,
+            Topic.mockedSerde(topic.keySerde, true).deserializer(),
+            Topic.mockedSerde(topic.valueSerde, false).deserializer()
+        )
+    } as TestOutputTopic<K, V>
 }
 
 private fun props(props: Map<String, Any>): Properties {
@@ -27,7 +35,7 @@ private fun props(props: Map<String, Any>): Properties {
     return properties
 }
 
-fun mocktop(topology: (StreamsBuilder) -> Unit): TopologyTestDriver {
+fun withTopology(topology: (StreamsBuilder) -> Unit): TopologyTestDriver {
     Topic.useMocking = true
     val builder = StreamsBuilder()
     topology(builder)
@@ -43,26 +51,19 @@ fun mocktop(topology: (StreamsBuilder) -> Unit): TopologyTestDriver {
     )
 }
 
-
 /**
  * Produce a message.
  */
 fun <K, V> TopologyTestDriver.produce(topic: Topic<K, V>, kv: Pair<K, V>) {
     val (k, v) = kv
-    this.pipeInput(topicGenerator(topic).create(k, v))
+    this.toTopic(topic).pipeInput(k, v)
 }
-
-data class Message<K, V>(val key: K, val value: V)
 
 /**
  * Get the next message.
  */
-fun <K, V> TopologyTestDriver.consume(topic: Topic<K, V>): Message<K, V>? {
-    val message: ProducerRecord<K, V>? = this.readOutput(
-        topic.name,
-        Topic.mockedSerde(topic.keySerde, true).deserializer(),
-        Topic.mockedSerde(topic.valueSerde, false).deserializer()
-    )
-    return if (message != null) { Message(key = message.key(), value = message.value()) } else { null }
+fun <K, V> TopologyTestDriver.consume(topic: Topic<K, V>): Pair<K, V>? {
+    val message = this.fromTopic(topic).readKeyValue()
+    return if (message != null) { Pair(message.key, message.value) } else { null }
 }
 
