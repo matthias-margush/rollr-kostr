@@ -1,4 +1,4 @@
-package com.acmeinc
+package com.acmeinc.underwriting
 
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.StreamsConfig.*

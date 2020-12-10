@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "LoanApproval",
-  "namespace": "com.acmeinc",
+  "namespace": "com.acmeinc.underwriting",
   "doc": "Loan Approval",
   "fields": [
     {

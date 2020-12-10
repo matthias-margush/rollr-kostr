@@ -1,4 +1,4 @@
-package com.acmeinc
+package com.acmeinc.underwriting
 
 import kostr.test.consume
 import kostr.test.produce

@@ -1,4 +1,4 @@
-package com.acmeinc
+package com.acmeinc.underwriting
 
 import kostr.serde.EDNSerde
 import kostr.Topic

@@ -4,12 +4,9 @@ plugins {
     id "com.commercehub.gradle.plugin.avro" version "0.21.0"
 }
 
-//plugins.withId()
-
 mainClassName = "com.ameinc.App"
-
-//group = 'acmeinc'
-//version = '1.0-SNAPSHOT'
+group = 'acmeinc'
+version = '1.0-SNAPSHOT'
 
 repositories {
     jcenter()
