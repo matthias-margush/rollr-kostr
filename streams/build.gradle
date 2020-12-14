@@ -1,0 +1,6 @@
+dependencies {
+    implementation project(':client')
+
+    implementation 'io.confluent:kafka-streams-avro-serde:6.0.0'
+    implementation 'org.apache.kafka:kafka-streams:2.6.0'
+}

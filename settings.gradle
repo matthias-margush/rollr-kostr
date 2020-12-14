@@ -3,11 +3,16 @@ pluginManagement {
         gradlePluginPortal()
         jcenter()
         maven {
-            name "JCenter Gradle Plugins"
-            url  "https://dl.bintray.com/gradle/gradle-plugins"
+            name 'JCenter Gradle Plugins'
+            url  'https://dl.bintray.com/gradle/gradle-plugins'
         }
     }
 }
 
-rootProject.name = 'rollr-kostr'
-
+include 'avro-serde'
+include 'client'
+include 'core'
+include 'edn-serde'
+include 'examples:underwriting'
+include 'streams'
+include 'streams:test-utils'
