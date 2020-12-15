@@ -6,9 +6,7 @@ import kostr.streams.stream
 import kostr.streams.to
 import org.apache.kafka.streams.StreamsBuilder
 
-fun loanApprovalTopology(
-    builder: StreamsBuilder,
-) =
+fun loanApprovalTopology(builder: StreamsBuilder) =
     builder.stream(LoanApplication)
         .mapValues(::rubberStamp) to LoanApproval
 
