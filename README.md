@@ -3,29 +3,71 @@
 ![rollr-kostr](rollercoaster-297308_640.png)
 <!-- (Image from https://pixabay.com/vectors/rollercoaster-roller-coaster-297308/) -->
 
-This project implements a few small experiments related to using kafka streams with kotlin.
+This project implements five small conveniences for using kafka streams with
+kotlin.
 
-## Setup
-```bash
-# Tools
-brew install gradle
-
-# Bootstrap
-gradle wrapper --gradle-version 5.4.1
-
-# Build 
-gradle test # --info for more details
-
-# Intellij
-idea .
-```
 ## Through the Corkscrew
 
-### 🎢 Pass-through Data
-If a topology wants to carry along and propagate unknown fields through a topology (for forward-compatibility), a [map-backed data class](src/main/kotlin/com/acmeinc/LoanApplication.kt) is suitable.
+### 🎢 Topics & Serdes
+
+A [`Topic`](client/src/main/kotlin/kostr/topic/Topic.kt) abstraction that
+packages up the topic name, key serde and value serde.
 
 ```kotlin
-data class LoanApplication(override val map: Map<String, Any?>) {
+val LoanApproval = Topic<String, LoanApproval>(
+    "loan-approval",
+    Serdes.String(),
+    AvroSerde<LoanApproval>(),
+)
+```
+
+This defines a topic named "loan-approval" using the string serde for the key,
+and whose value uses the avro serde.
+
+### 🎢 Building Topologies
+
+The kafka streams builder API
+is [extended](streams/src/main/kotlin/kostr/streams/StreamsBuilder.kt)
+to support the `Topic` abstraction (using [Kotlin extension functions](https://kotlinlang.org/docs/reference/extensions.html)).
+
+Here is an [example topology](examples/underwriting/src/main/kotlin/com/acmeinc/underwriting/LoanApprovalTopology.kt)
+using the `LoanApproval` topic:
+
+```kotlin
+fun loanApprovalTopology(builder: StreamsBuilder) =
+    builder.stream(LoanApplication)
+        .mapValues(::rubberStamp) to LoanApproval
+```
+
+### 🎢 Tests
+
+A few conveniences for testing. Schema registry is automatically mocked behind
+the scenes. Topics defined using the enhanced [AvroSerde](avro-serde/src/main/kotlin/kostr/streams/serdes/avro/Avro.kt) 
+will automatically utilize the mock registry when used within a test context.
+
+```kotlin
+@Test
+fun `when applied for, loans are approved`() =
+    withTopology(::loanApprovalTopology) { topology ->
+        val application = LoanApplication.generate()
+
+        topology.produce(Topics.LoanApplication, application)
+
+        val approval = topology.consume(Topics.LoanApproval)
+        assertNotNull(approval)
+
+        val (id, details) = approval
+        println("id: $id, details: $details")
+    }
+```
+
+### 🎢 Pass-through Data
+
+If unknown fields should be propagated through a topology (to implement a 
+forward-compatibility data strategy), make it [Mapified](core/src/main/kotlin/kostr/Mapified.kt).
+
+```kotlin
+data class LoanApplication(override val map: Map<String, Any?>) : Mapified {
     val id: UUID by map
     val firstName: String by map
     val lastName: String by map
@@ -33,41 +75,9 @@ data class LoanApplication(override val map: Map<String, Any?>) {
 }
 ```
 
-### 🎢 Avro
-- In this experiment a Java data class is generated from an [avro spec](src/main/avro/loan-approval.avsc) as part of `gradle build` using the [gradle-avro-plugin](https://github.com/commercehub-oss/gradle-avro-plugin). (A generated Kotlin data class would be nicer, but using a Java class is seamless from Kotlin.)
+### 🎢 EDN Serde
 
-### 🎢 EDN
-- (I wouldn't suggest making EDN a primary format when working w/Kotlin, but it's not hard if needed.)
+A very basic EDN serde.
 - Leverages [edn-java](https://github.com/bpsm/edn-java)
-- [Basic kafka serde](src/main/kotlin/kostr/serde/Edn.kt) handles maps, rejects any other kind of EDN string (ready to be enhanced further as needed)
-- Implementing `kotlinx.serialization` would be nice.
-
-### 🎢 Topics
-Topics & serdes go together conceptually, but the Java kafka APIs don't bundle topics & serdes in a data structure. Tracking those all separately can be a bit typo-prone if there are more than a few topics. The project simplifies this by defining a `Topic` type that packages up [topics](src/main/kotlin/kostr/Topic.kt) and [serdes](src/main/kotlin/kostr/serde/Serde.kt) together. Define a topic like this:
-
-```kotlin
-val LoanApprovalTopic = Topic<String, LoanApproval>("loan-approval", StringSerde{}, AvroSerde{})
-```
-This defines a topic named "loan-approval" whose key will be serialized using the string serde, and whose value will be serialized from avro into the `LoanApproval` data object (which was generated with the avro plugin).
-
-### 🎢 Topologies
-Kotlin [extension functions](https://kotlinlang.org/docs/reference/extensions.html) provide a lightweight mechanism for  [integrating](src/main/kotlin/kostr/streams/StreamsBuilder.kt) `Topic` definitions with the underlying java kafka streams API without re-writing or wrapping the entire thing. Defining a topology then looks like [this](src/main/kotlin/com/acmeinc/LoanApprovalTopology.kt):
-
-```kotlin
-fun loanApprovalTopology(builder: StreamsBuilder) =
-    builder.stream(Topics.LoanApplication)
-        .mapValues(::rubberStamp) to Topics.LoanApproval
-```
-
-### 🎢 Tests
-A bit of wrappping around `TopologyTestDriver` so tests can be written concisely:
-```kotlin
-@Test
-fun `loan approval topology`() =
-    mocktop(::loanApprovalTopology).use { topology ->
-        val application = LoanApplication.generate()
-        topology.produce(Topics.LoanApplication, application)
-        val approval = topology.consume(Topics.LoanApproval)
-        println("Result: $approval")
-    }
-```
+- [Basic kafka serde](edn-serde/src/main/kotlin/kostr/serde/Edn.kt) handles maps, rejects
+  any other kind of EDN string (ready to be enhanced further as needed).
