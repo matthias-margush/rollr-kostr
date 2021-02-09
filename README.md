@@ -81,3 +81,5 @@ A very basic EDN serde.
 - Leverages [edn-java](https://github.com/bpsm/edn-java)
 - [Basic kafka serde](edn-serde/src/main/kotlin/kostr/serde/Edn.kt) handles maps, rejects
   any other kind of EDN string (ready to be enhanced further as needed).
+
+(adding a change here to test code climate trigger.)
